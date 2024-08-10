@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum CharTypes {
+enum CharType {
     case Escape
     case GroupStart
     case GroupEnd
@@ -13,17 +13,42 @@ enum CharTypes {
     case OtherChar
     case ActiveChar
     case CommentChar
-    case InvalidChar
 }
 
 enum Token {
-    case char(CharTypes, Character)
+    case char(CharType, Character)
     case control(String)
+}
+
+indirect enum BoxContents {
+    case Box(Box)
+    case Char(CGGlyph)
+}
+
+struct Box {
+    let height: Int
+    let width: Int
+    let depth: Int
+    let contents: BoxContents
+}
+
+struct Glue {
+    let space: Int
+    let strech: Int
+    let shrink: Int
+}
+
+enum Mode {
+    case Vertical
+    case InternalVertical
+    case Horizontal
+    case RestrictedHorizontal
+    case Math
 }
 
 struct TeX: View {
     
-    let toks: [Token]
+    var toks: [Token] = []
     init(_ latex: String) {
         let latex_array = Array(latex)
         var cur = 0
@@ -31,30 +56,36 @@ struct TeX: View {
             let char = latex_array[cur]
             switch char {
             case "\\":
-                self.toks.append(Token.char(CharTypes.Escape, char))
+                 self.toks.append(Token.char(CharType.Escape, char))
             case "{":
-                self.toks.append(Token.char(CharTypes.GroupStart, char))
+                self.toks.append(Token.char(CharType.GroupStart, char))
             case "}":
-                self.toks.append(Token.char(CharTypes.GroupEnd, char))
+                self.toks.append(Token.char(CharType.GroupEnd, char))
             case "$":
-                self.toks.append(Token.char(CharTypes.MathShift, char))
+                self.toks.append(Token.char(CharType.MathShift, char))
             case "^":
-                self.toks.append(Token.char(CharTypes.Superscript, char))
+                self.toks.append(Token.char(CharType.Superscript, char))
             case "_":
-                self.toks.append(Token.char(CharTypes.Subscript, char))
+                self.toks.append(Token.char(CharType.Subscript, char))
             case " ":
-                self.toks.append(Token.char(CharTypes.Space, char))
-            case Character("a"):
-                self.toks.append(Token.char(CharTypes.Space, char))
+                self.toks.append(Token.char(CharType.Space, char))
+            case Character("A")...Character("Z"):
+                self.toks.append(Token.char(CharType.Space, char))
+            case Character("a")...Character("z"):
+                self.toks.append(Token.char(CharType.Space, char))
+            case "~":
+                self.toks.append(Token.char(CharType.ActiveChar, char))
+            case "%":
+                self.toks.append(Token.char(CharType.CommentChar, char))
             default:
-                print("a")
+                self.toks.append(Token.char(CharType.OtherChar, char))
             }
             cur += 1
         }
     }
     
     var body: some View {
-        Text(toks)
+        Text(toks.description)
     }
 }
 
