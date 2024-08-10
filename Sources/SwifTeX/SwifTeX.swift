@@ -39,7 +39,6 @@ struct Glue {
 }
 
 enum Mode {
-    case Vertical
     case InternalVertical
     case Horizontal
     case RestrictedHorizontal
@@ -48,44 +47,55 @@ enum Mode {
 
 struct TeX: View {
     
-    var toks: [Token] = []
     init(_ latex: String) {
         let latex_array = Array(latex)
         var cur = 0
+        var toks: [Token] = []
         while cur < latex.count {
             let char = latex_array[cur]
             switch char {
             case "\\":
-                 self.toks.append(Token.char(CharType.Escape, char))
+                cur += 1
+                var toAdd = ""
+                while cur < latex_array.count && latex_array[cur] != " " {
+                    toAdd.append(latex_array[cur])
+                    cur += 1
+                }
+                toks.append(Token.control(toAdd))
             case "{":
-                self.toks.append(Token.char(CharType.GroupStart, char))
+                toks.append(Token.char(CharType.GroupStart, char))
             case "}":
-                self.toks.append(Token.char(CharType.GroupEnd, char))
+                toks.append(Token.char(CharType.GroupEnd, char))
             case "$":
-                self.toks.append(Token.char(CharType.MathShift, char))
+                toks.append(Token.char(CharType.MathShift, char))
             case "^":
-                self.toks.append(Token.char(CharType.Superscript, char))
+                toks.append(Token.char(CharType.Superscript, char))
             case "_":
-                self.toks.append(Token.char(CharType.Subscript, char))
+                toks.append(Token.char(CharType.Subscript, char))
             case " ":
-                self.toks.append(Token.char(CharType.Space, char))
+                toks.append(Token.char(CharType.Space, char))
             case Character("A")...Character("Z"):
-                self.toks.append(Token.char(CharType.Space, char))
+                toks.append(Token.char(CharType.Space, char))
             case Character("a")...Character("z"):
-                self.toks.append(Token.char(CharType.Space, char))
+                toks.append(Token.char(CharType.Space, char))
             case "~":
-                self.toks.append(Token.char(CharType.ActiveChar, char))
+                toks.append(Token.char(CharType.ActiveChar, char))
             case "%":
-                self.toks.append(Token.char(CharType.CommentChar, char))
+                toks.append(Token.char(CharType.CommentChar, char))
             default:
-                self.toks.append(Token.char(CharType.OtherChar, char))
+                toks.append(Token.char(CharType.OtherChar, char))
             }
             cur += 1
+        }
+        if let font = CTFontCreateUIFontForLanguage(.system, 0, nil) {
+            let ctrun = CFArrayGetValueAtIndex(CTLineGetGlyphRuns(CTLineCreateWithAttributedString(CFAttributedStringCreate(nil, "test" as CFString, CTFontCopyTraits(font)))), 0)!.load(as: CTRun.self)
+            CTFontDrawGlyphs(font, CTRunGetGlyphsPtr(ctrun)!, CTRunGetPositionsPtr(ctrun), <#T##count: Int##Int#>, <#T##context: CGContext##CGContext#>)
+            
         }
     }
     
     var body: some View {
-        Text(toks.description)
+        Text("test")
     }
 }
 
@@ -93,8 +103,8 @@ struct Example: View {
     
     var body: some View {
         List {
-            TeX(#"te{st}"#)
-            TeX(#"test"#)
+            TeX("te{st} \\test")
+            TeX("test")
         }
     }
 }
