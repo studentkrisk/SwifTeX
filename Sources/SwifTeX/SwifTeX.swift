@@ -87,15 +87,18 @@ struct TeX: View {
             }
             cur += 1
         }
-        if let font = CTFontCreateUIFontForLanguage(.system, 0, nil) {
-            let ctrun = CFArrayGetValueAtIndex(CTLineGetGlyphRuns(CTLineCreateWithAttributedString(CFAttributedStringCreate(nil, "test" as CFString, CTFontCopyTraits(font)))), 0)!.load(as: CTRun.self)
-            CTFontDrawGlyphs(font, CTRunGetGlyphsPtr(ctrun)!, CTRunGetPositionsPtr(ctrun), <#T##count: Int##Int#>, <#T##context: CGContext##CGContext#>)
-            
-        }
     }
     
     var body: some View {
-        Text("test")
+        Canvas {context, size in
+            if let font = CTFontCreateUIFontForLanguage(.system, 0, nil) {
+                let ctrun = CFArrayGetValueAtIndex(CTLineGetGlyphRuns(CTLineCreateWithAttributedString(CFAttributedStringCreate(nil, "test" as CFString, CTFontCopyTraits(font)))), 0)!.load(as: CTRun.self)
+                context.withCGContext(content: {(ctx: CGContext) -> Void in
+                    ctx.fill(CGRect(x: 0, y: 0, width: 10, height: 10))
+                    print(CTRunGet GlyphCount(ctrun))
+                })
+            }
+        }
     }
 }
 
