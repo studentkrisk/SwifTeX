@@ -91,23 +91,27 @@ struct TeX: View {
     
     var body: some View {
         Canvas {context, size in
-            if let font = CTFontCreateUIFontForLanguage(.system, 17, nil) {
-                let glyph_ptr = UnsafeMutablePointer<CGGlyph>.allocate(capacity: 1)
-                glyph_ptr.pointee = CTFontGetGlyphWithName(font, "a" as CFString)
-                let pos_ptr = UnsafeMutablePointer<CGPoint>.allocate(capacity: 1)
-                pos_ptr.pointee = CGPoint(x: 0, y: 0)
-                
-                context.withCGContext(content: {(ctx: CGContext) -> Void in
-                    CTFontDrawGlyphs(font, glyph_ptr, pos_ptr, 1, ctx)
-                })
-            }
+            let unrotated_font = CTFontCreateUIFontForLanguage(.system, 17, nil)!
+            var transform = CGAffineTransform(scaleX: 1, y: -1).translatedBy(x:0, y: -1) // CTFontGetMatrix(unrotated_font).translatedBy(x: <#T##CGFloat#>, y: <#T##CGFloat#>)
+            let font = CTFontCreateCopyWithAttributes(unrotated_font, 0, UnsafePointer<CGAffineTransform>(&transform), nil)
+            
+            let glyph_ptr = UnsafeMutablePointer<CGGlyph>.allocate(capacity: 1)
+            glyph_ptr.pointee = CTFontGetGlyphWithName(font, "a" as CFString)
+            let pos_ptr = UnsafeMutablePointer<CGPoint>.allocate(capacity: 1)
+            pos_ptr.pointee = CGPoint(x: 0, y: 0)
+            
+            context.withCGContext(content: {(ctx: CGContext) -> Void in
+                CTFontDrawGlyphs(font, glyph_ptr, pos_ptr, 1, ctx)
+            })
         }
     }
 }
 
 #Preview {
     List {
-        Text("a")
+        Text("aTESTtest")
+            .font(.system(size: 17))
+        Text("aTESTtest")
         TeX("t")
         TeX("t")
     }
