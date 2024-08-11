@@ -91,26 +91,24 @@ struct TeX: View {
     
     var body: some View {
         Canvas {context, size in
-            if let font = CTFontCreateUIFontForLanguage(.system, 30, nil) {
-                let ctline = CTLineCreateWithAttributedString(CFAttributedStringCreate(nil, "a" as CFString, CTFontCopyTraits(font)))
-                let ctrun = unsafeBitCast(CFArrayGetValueAtIndex(CTLineGetGlyphRuns(ctline), 0)!, to: CTRun.self)
+            if let font = CTFontCreateUIFontForLanguage(.system, 17, nil) {
+                let glyph_ptr = UnsafeMutablePointer<CGGlyph>.allocate(capacity: 1)
+                glyph_ptr.pointee = CTFontGetGlyphWithName(font, "a" as CFString)
+                let pos_ptr = UnsafeMutablePointer<CGPoint>.allocate(capacity: 1)
+                pos_ptr.pointee = CGPoint(x: 0, y: 0)
+                
                 context.withCGContext(content: {(ctx: CGContext) -> Void in
-                    CTFontDrawGlyphs(font, CTRunGetGlyphsPtr(ctrun)!, CTRunGetPositionsPtr(ctrun)!, CTRunGetGlyphCount(ctrun), ctx)
+                    CTFontDrawGlyphs(font, glyph_ptr, pos_ptr, 1, ctx)
                 })
             }
         }
     }
 }
 
-struct Example: View {
-    
-    var body: some View {
-        List {
-            TeX("te{st} \\test")
-            TeX("test")
-        }
-    }
-}
 #Preview {
-    Example()
+    List {
+        Text("a")
+        TeX("t")
+        TeX("t")
+    }
 }
