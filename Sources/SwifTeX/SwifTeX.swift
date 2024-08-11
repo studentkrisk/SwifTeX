@@ -91,11 +91,11 @@ struct TeX: View {
     
     var body: some View {
         Canvas {context, size in
-            if let font = CTFontCreateUIFontForLanguage(.system, 0, nil) {
-                let ctrun = CFArrayGetValueAtIndex(CTLineGetGlyphRuns(CTLineCreateWithAttributedString(CFAttributedStringCreate(nil, "test" as CFString, CTFontCopyTraits(font)))), 0)!.load(as: CTRun.self)
+            if let font = CTFontCreateUIFontForLanguage(.system, 30, nil) {
+                let ctline = CTLineCreateWithAttributedString(CFAttributedStringCreate(nil, "a" as CFString, CTFontCopyTraits(font)))
+                let ctrun = unsafeBitCast(CFArrayGetValueAtIndex(CTLineGetGlyphRuns(ctline), 0)!, to: CTRun.self)
                 context.withCGContext(content: {(ctx: CGContext) -> Void in
-                    ctx.fill(CGRect(x: 0, y: 0, width: 10, height: 10))
-                    print(CTRunGet GlyphCount(ctrun))
+                    CTFontDrawGlyphs(font, CTRunGetGlyphsPtr(ctrun)!, CTRunGetPositionsPtr(ctrun)!, CTRunGetGlyphCount(ctrun), ctx)
                 })
             }
         }
